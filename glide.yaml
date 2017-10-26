@@ -1,0 +1,13 @@
+package: github.com/aryahadii/sarioself
+import:
+- package: github.com/otiai10/gosseract
+- package: github.com/pkg/errors
+  version: ~0.8.0
+- package: github.com/sirupsen/logrus
+  version: ~1.0.3
+- package: github.com/spf13/viper
+  version: ~1.0.0
+testImport:
+- package: golang.org/x/net
+  subpackages:
+  - publicsuffix

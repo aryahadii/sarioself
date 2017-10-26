@@ -1,0 +1,6 @@
+address: "localhost:8000"
+debug: true
+
+test-user:
+  username: "username"
+  password: "password"

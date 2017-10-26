@@ -87,3 +87,9 @@ tags
 .history
 
 # End of https://www.gitignore.io/api/go,git,vim,linux,macos,visualstudiocode
+
+vendor/*
+secure/*
+!secure/PLACEHOLDER
+test/*
+!test/PLACEHOLDER
