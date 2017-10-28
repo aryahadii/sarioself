@@ -91,5 +91,4 @@ tags
 vendor/*
 secure/*
 !secure/PLACEHOLDER
-test/*
-!test/PLACEHOLDER
+test/config.yaml

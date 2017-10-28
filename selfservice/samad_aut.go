@@ -6,36 +6,32 @@ import (
 	"io"
 	"io/ioutil"
 	"net/http"
-	"net/http/cookiejar"
 	"net/url"
 	"regexp"
 	"strings"
+	"time"
 
+	"github.com/aryahadii/sarioself/model"
 	"github.com/otiai10/gosseract"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 )
 
 const (
-	samadLoginPageURL    = "http://samad.aut.ac.ir/loginpage.rose"
-	samadLoginBackendURL = "http://samad.aut.ac.ir/j_security_check"
-	samadCaptchaURL      = "http://samad.aut.ac.ir/captcha.jpg"
+	samadLoginPageURL         = "http://samad.aut.ac.ir/loginpage.rose"
+	samadLoginBackendURL      = "http://samad.aut.ac.ir/j_security_check"
+	samadCaptchaURL           = "http://samad.aut.ac.ir/captcha.jpg"
+	samadReservationURL       = "http://samad.aut.ac.ir/nurture/user/multi/reserve/reserve.rose"
+	samadReservationActionURL = "http://samad.aut.ac.ir/nurture/user/multi/reserve/reserve.rose"
 )
 
 var (
-	csrfRegex = regexp.MustCompile("'X-CSRF-TOKEN' : '(.*)'")
+	csrfRegex = regexp.MustCompile(`'X-CSRF-TOKEN' : '(.*)'`)
 	ocrClient *gosseract.Client
 )
 
 // SamadAUTClient is client of Amirkabir Univerity of Technology's restaurant
 type SamadAUTClient struct {
-}
-
-type userSessionData struct {
-	username string
-	password string
-	csrf     string
-	jar      *cookiejar.Jar
 }
 
 func init() {
@@ -116,11 +112,81 @@ func (s *SamadAUTClient) login(captcha string, sessionData *userSessionData,
 		response.Body.Close()
 	}()
 	if response.StatusCode < 200 || response.StatusCode >= 300 {
-		return fmt.Errorf("Samad returned %v status code when try to get captcha",
+		return fmt.Errorf("Samad return %v status code when try to generate captcha",
 			response.StatusCode)
 	}
 
 	body, _ := ioutil.ReadAll(response.Body)
+	bodyString := string(body)
+	sessionData.csrf = csrfRegex.FindStringSubmatch(bodyString)[1]
 	err = ioutil.WriteFile("/Users/aryahadi/Desktop/login.html", body, 0644)
 	return nil
+}
+
+// GetAvailableFoods returns a list of all foods that can be reserved
+// It checks this week and the next one
+func (s *SamadAUTClient) GetAvailableFoods(sessionData *userSessionData, client *http.Client) (map[time.Time]*model.Food, error) {
+	availableFoods := make(map[time.Time]*model.Food)
+
+	// Get page 1
+	response, err := client.Get(samadReservationURL)
+	if err != nil {
+		return availableFoods, err
+	}
+	if response.StatusCode < 200 || response.StatusCode >= 300 {
+		return nil, fmt.Errorf("Samad returned %v status code when tried to serve reservation page ",
+			response.StatusCode)
+	}
+	body, _ := ioutil.ReadAll(response.Body)
+	bodyString := string(body)
+	sessionData.csrf = csrfRegex.FindStringSubmatch(bodyString)[1]
+	io.Copy(ioutil.Discard, response.Body)
+	response.Body.Close()
+
+	foods, err := findSamadFoods(bodyString)
+	if err != nil {
+		return nil, errors.Wrap(err, "can't find Samad foods")
+	}
+	for _, food := range foods {
+		if food.Status != model.FoodStatusUnavailable {
+			availableFoods[*food.Date] = food
+		}
+	}
+
+	// Get page 2
+	formValues, err := extractFormInputValues(bodyString)
+	if err != nil {
+		return nil, errors.Wrap(err, "can't extract form input values")
+	}
+	formValues.Set("method:showNextWeek", "Submit")
+	request, err := http.NewRequest("POST", samadReservationActionURL, strings.NewReader(formValues.Encode()))
+	request.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	request.Header.Set("X-Csrf-Token", sessionData.csrf)
+	response, err = client.Do(request)
+	defer func() {
+		io.Copy(ioutil.Discard, response.Body)
+		response.Body.Close()
+	}()
+	if err != nil {
+		return nil, errors.Wrap(err, "can't read second page of Samad")
+	}
+	if response.StatusCode < 200 || response.StatusCode >= 300 {
+		return nil, fmt.Errorf("Samad returned %v status code when tried to serve second reservation page ",
+			response.StatusCode)
+	}
+	body, _ = ioutil.ReadAll(response.Body)
+	bodyString = string(body)
+	sessionData.csrf = csrfRegex.FindStringSubmatch(bodyString)[1]
+
+	foods, err = findSamadFoods(bodyString)
+	if err != nil {
+		return nil, errors.Wrap(err, "can't find Samad foods from second page")
+	}
+	for _, food := range foods {
+		if food.Status != model.FoodStatusUnavailable {
+			availableFoods[*food.Date] = food
+		}
+	}
+
+	return availableFoods, nil
 }

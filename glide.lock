@@ -1,6 +1,8 @@
-hash: 448399a28bd8e5417357c441c9457838a77682076ae1f235830e3ab24e36d2ce
-updated: 2017-10-26T21:26:47.543473+03:30
+hash: 0d8c6a88d457eabc00996667fbcf74ce6a9ba18f83c9e708868ba493cdf5fbda
+updated: 2017-10-27T23:29:49.463992+03:30
 imports:
+- name: github.com/andybalholm/cascadia
+  version: 349dd0209470eabd9514242c688c403c0926d266
 - name: github.com/fsnotify/fsnotify
   version: 4da3e2cfbabc9f751898f250b49f2439785783a1
 - name: github.com/hashicorp/hcl
@@ -26,6 +28,8 @@ imports:
   version: 4e9e0ee19b60b13eb79915933f44d8ed5f268bdd
 - name: github.com/pkg/errors
   version: 645ef00459ed84a119197bfb8d8205042c6df63d
+- name: github.com/PuerkitoBio/goquery
+  version: e1271ee34c6a305e38566ecd27ae374944907ee9
 - name: github.com/sirupsen/logrus
   version: f006c2ac4710855cf0f916dd6b77acf6b048dc6e
 - name: github.com/spf13/afero
@@ -40,10 +44,18 @@ imports:
   version: 97afa5e7ca8a08a383cb259e06636b5e2cc7897f
 - name: github.com/spf13/viper
   version: 25b30aa063fc18e48662b86996252eabdcf2f0c7
+- name: github.com/yaa110/go-persian-calendar
+  version: d84e13bdd8bc817816adc1164c41bc720aeffecd
 - name: golang.org/x/crypto
   version: 2509b142fb2b797aa7587dad548f113b2c0f20ce
   subpackages:
   - ssh/terminal
+- name: golang.org/x/net
+  version: 4b14673ba32bee7f5ac0f990a48f033919fd418b
+  subpackages:
+  - html
+  - html/atom
+  - publicsuffix
 - name: golang.org/x/sys
   version: 3e3646d2c706c21b222a5dbcaa6db12b3e0cc765
   subpackages:
@@ -56,8 +68,4 @@ imports:
   - unicode/norm
 - name: gopkg.in/yaml.v2
   version: eb3733d160e74a9c7e442f435eb3bea458e1d19f
-testImports:
-- name: golang.org/x/net
-  version: 4b14673ba32bee7f5ac0f990a48f033919fd418b
-  subpackages:
-  - publicsuffix
+testImports: []
