@@ -119,7 +119,6 @@ func (s *SamadAUTClient) login(captcha string, sessionData *userSessionData,
 	body, _ := ioutil.ReadAll(response.Body)
 	bodyString := string(body)
 	sessionData.csrf = csrfRegex.FindStringSubmatch(bodyString)[1]
-	err = ioutil.WriteFile("/Users/aryahadi/Desktop/login.html", body, 0644)
 	return nil
 }
 
