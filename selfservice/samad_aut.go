@@ -141,7 +141,6 @@ func (s *SamadAUTClient) GetAvailableFoods(sessionData *userSessionData, client 
 	sessionData.csrf = csrfRegex.FindStringSubmatch(bodyString)[1]
 	io.Copy(ioutil.Discard, response.Body)
 	response.Body.Close()
-
 	foods, err := findSamadFoods(bodyString)
 	if err != nil {
 		return nil, errors.Wrap(err, "can't find Samad foods")
@@ -188,4 +187,9 @@ func (s *SamadAUTClient) GetAvailableFoods(sessionData *userSessionData, client 
 	}
 
 	return availableFoods, nil
+}
+
+func (s *SamadAUTClient) ReserveFood(food *model.Food, sessionData *userSessionData,
+	client *http.Client) error {
+	return nil
 }
