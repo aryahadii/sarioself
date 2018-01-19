@@ -20,7 +20,7 @@ func InitMongoDB() error {
 	var err error
 	session, err = mgo.Dial(configuration.SarioselfConfig.GetString("mongodb.address"))
 	if err != nil {
-		errors.Wrap(err, "MongoDB session can't be created")
+		return errors.Wrap(err, "MongoDB session can't be created")
 	}
 	UsersCollection = session.DB(dbName).C(usersCollectionName)
 	return nil
