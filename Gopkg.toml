@@ -30,9 +30,6 @@
   branch = "master"
 
 [[constraint]]
-  name = "github.com/otiai10/gosseract"
-
-[[constraint]]
   name = "github.com/pkg/errors"
   version = "0.8.0"
 

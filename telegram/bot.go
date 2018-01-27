@@ -32,4 +32,7 @@ func StartBot() {
 func setCallbacks(bot *miyanbor.Bot) {
 	bot.SetSessionStartCallbackHandler(sessionStartHandler)
 	bot.SetFallbackCallbackHandler(unknownMessageHandler)
+
+	bot.AddCommandHandler("reserve", reserveCommandHandler)
+	bot.AddCommandHandler("menu", menuCommandHandler)
 }

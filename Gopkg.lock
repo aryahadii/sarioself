@@ -17,7 +17,7 @@
   branch = "master"
   name = "github.com/aryahadii/miyanbor"
   packages = ["."]
-  revision = "6d1d31c3681cb49dce0bf1cfe59824bdb010b44e"
+  revision = "cc8ae51c054ee3f5c8fea7b25b3f70292166dba3"
 
 [[projects]]
   name = "github.com/fsnotify/fsnotify"
@@ -51,7 +51,7 @@
 
 [[projects]]
   name = "github.com/otiai10/gosseract"
-  packages = ["."]
+  packages = ["v1/gosseract","v1/gosseract/tesseract"]
   revision = "ff587f106ee83627349e2868111c9494105a93ac"
   version = "v2.0"
 
@@ -172,6 +172,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "f626bc5a4f4eee38b7aa932bd73ee0d2ac32c39592d017c988801dca8702f4a4"
+  inputs-digest = "c28fe548bd3a3f728f2d9b967500890c7f8de6212cda2d115d0b4761c8a8c0f9"
   solver-name = "gps-cdcl"
   solver-version = 1

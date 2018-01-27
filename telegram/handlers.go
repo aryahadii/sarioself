@@ -6,17 +6,19 @@ import (
 	"github.com/aryahadii/sarioself/model"
 	"github.com/aryahadii/sarioself/ui/text"
 	"github.com/sirupsen/logrus"
-	"gopkg.in/mgo.v2/bson"
 	telegramAPI "gopkg.in/telegram-bot-api.v4"
 )
 
 func sessionStartHandler(userSession *miyanbor.UserSession, input interface{}) {
-	var userInfo model.User
-	err := db.UsersCollection.Find(bson.M{"user-id": userSession.GetUserID()}).One(&userInfo)
-	if err != nil {
-		Bot.AskStringQuestion(text.MsgEnterStudentID, userSession.GetUserID(),
-			userSession.GetChatID(), enterStudentIDCallback)
-	}
+	getUserInfo(userSession)
+}
+
+func menuCommandHandler(userSession *miyanbor.UserSession, matches interface{}) {
+}
+
+func reserveCommandHandler(userSession *miyanbor.UserSession, matches interface{}) {
+	msg := telegramAPI.NewMessage(userSession.GetChatID(), "فعلا از این چیزها نداریم!")
+	Bot.Send(msg)
 }
 
 func unknownMessageHandler(userSession *miyanbor.UserSession, input interface{}) {

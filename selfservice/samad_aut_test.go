@@ -49,35 +49,14 @@ func TestLogin(t *testing.T) {
 }
 
 func TestGetAvailableFoods(t *testing.T) {
-	samad := NewSamadAUTClient()
-	jarOption := &cookiejar.Options{
-		PublicSuffixList: publicsuffix.List,
-	}
-	cookieJar, _ := cookiejar.New(jarOption)
-	client := &http.Client{Jar: cookieJar}
-
-	sessionData, err := samad.createConnection(client)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if len(sessionData.csrf) == 0 {
-		t.Fatalf("CSRF is not valid, %v", sessionData.csrf)
-	}
-	sessionData.username = configuration.SarioselfConfig.GetString("test-user.username")
-	sessionData.password = configuration.SarioselfConfig.GetString("test-user.password")
-	sessionData.jar = cookieJar
-
-	captcha, err := samad.readCaptcha(client)
+	username := configuration.SarioselfConfig.GetString("test-user.username")
+	password := configuration.SarioselfConfig.GetString("test-user.password")
+	samad, err := NewSamadAUTClient(username, password)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	err = samad.login(captcha, sessionData, client)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	foods, err := samad.GetAvailableFoods(sessionData, client)
+	foods, err := samad.GetAvailableFoods()
 	if err != nil {
 		t.Fatal(err)
 	}
