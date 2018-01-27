@@ -1,9 +1,12 @@
 package telegram
 
 import (
+	"fmt"
+
 	"github.com/aryahadii/miyanbor"
 	"github.com/aryahadii/sarioself/db"
 	"github.com/aryahadii/sarioself/model"
+	"github.com/aryahadii/sarioself/selfservice"
 	"github.com/aryahadii/sarioself/ui/text"
 	"github.com/sirupsen/logrus"
 	telegramAPI "gopkg.in/telegram-bot-api.v4"
@@ -14,6 +17,43 @@ func sessionStartHandler(userSession *miyanbor.UserSession, input interface{}) {
 }
 
 func menuCommandHandler(userSession *miyanbor.UserSession, matches interface{}) {
+	userInfo, err := getUserInfo(userSession)
+	if err != nil {
+		return
+	}
+
+	samadClient, err := selfservice.NewSamadAUTClient(userInfo.StudentID, userInfo.Password)
+	if err != nil {
+		logrus.Errorf("can't create new Samad client, %v", err)
+		msg := telegramAPI.NewMessage(userSession.GetChatID(), text.MsgAnErrorOccured)
+		Bot.Send(msg)
+		return
+	}
+
+	foods, err := samadClient.GetAvailableFoods()
+	if err != nil {
+		logrus.Errorf("can't GetAvailableFoods, %v", err)
+		msg := telegramAPI.NewMessage(userSession.GetChatID(), text.MsgAnErrorOccured)
+		Bot.Send(msg)
+		return
+	}
+
+	menuMsgText := ""
+	for time, food := range foods {
+		formattedTime := getFormattedTime(time)
+		if food.Status == model.FoodStatusUnavailable {
+			menuMsgText += fmt.Sprintf(text.MsgNotSelectableFoodMenuItem,
+				formattedTime, food.Name, food.SideDish, food.PriceTooman)
+		} else if food.Status == model.FoodStatusReserved {
+			menuMsgText += fmt.Sprintf(text.MsgSelectedFoodMenuItem,
+				formattedTime, food.Name, food.SideDish, food.PriceTooman)
+		} else {
+			menuMsgText += fmt.Sprintf(text.MsgNotSelectedFoodMenuItem,
+				formattedTime, food.Name, food.SideDish, food.PriceTooman)
+		}
+	}
+	msg := telegramAPI.NewMessage(userSession.GetChatID(), menuMsgText)
+	Bot.Send(msg)
 }
 
 func reserveCommandHandler(userSession *miyanbor.UserSession, matches interface{}) {
