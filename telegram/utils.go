@@ -2,6 +2,7 @@ package telegram
 
 import (
 	"fmt"
+	"strconv"
 	"time"
 
 	"github.com/aryahadii/miyanbor"
@@ -38,4 +39,24 @@ var (
 func getFormattedTime(time time.Time) string {
 	jalaliDate := ptime.New(time)
 	return fmt.Sprintf("%s %dام", weekdays[int(jalaliDate.Weekday())], jalaliDate.Day())
+}
+
+func generateMenuMessage(foods map[time.Time][]*model.Food) string {
+	menuMsgText := ""
+	for time, foodsOfDay := range foods {
+		for _, food := range foodsOfDay {
+			formattedTime := getFormattedTime(time)
+			if food.Status == model.FoodStatusUnavailable {
+				menuMsgText += fmt.Sprintf(text.MsgNotSelectableFoodMenuItem,
+					formattedTime, food.Name, food.SideDish, strconv.Itoa(food.PriceTooman))
+			} else if food.Status == model.FoodStatusReserved {
+				menuMsgText += fmt.Sprintf(text.MsgSelectedFoodMenuItem,
+					formattedTime, food.Name, food.SideDish, strconv.Itoa(food.PriceTooman))
+			} else {
+				menuMsgText += fmt.Sprintf(text.MsgNotSelectedFoodMenuItem,
+					formattedTime, food.Name, food.SideDish, strconv.Itoa(food.PriceTooman))
+			}
+		}
+	}
+	return menuMsgText
 }

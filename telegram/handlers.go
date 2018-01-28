@@ -1,9 +1,6 @@
 package telegram
 
 import (
-	"fmt"
-	"strconv"
-
 	"github.com/aryahadii/miyanbor"
 	"github.com/aryahadii/sarioself/db"
 	"github.com/aryahadii/sarioself/model"
@@ -23,6 +20,7 @@ func menuCommandHandler(userSession *miyanbor.UserSession, matches interface{}) 
 		return
 	}
 
+	// Create client
 	samadClient, err := selfservice.NewSamadAUTClient(userInfo.StudentID, userInfo.Password)
 	if err != nil {
 		logrus.Errorf("can't create new Samad client, %v", err)
@@ -31,6 +29,7 @@ func menuCommandHandler(userSession *miyanbor.UserSession, matches interface{}) 
 		return
 	}
 
+	// Get foods list
 	foods, err := samadClient.GetAvailableFoods()
 	if err != nil {
 		logrus.Errorf("can't GetAvailableFoods, %v", err)
@@ -39,22 +38,8 @@ func menuCommandHandler(userSession *miyanbor.UserSession, matches interface{}) 
 		return
 	}
 
-	menuMsgText := ""
-	for time, foodsOfDay := range foods {
-		for _, food := range foodsOfDay {
-			formattedTime := getFormattedTime(time)
-			if food.Status == model.FoodStatusUnavailable {
-				menuMsgText += fmt.Sprintf(text.MsgNotSelectableFoodMenuItem,
-					formattedTime, food.Name, food.SideDish, strconv.Itoa(food.PriceTooman))
-			} else if food.Status == model.FoodStatusReserved {
-				menuMsgText += fmt.Sprintf(text.MsgSelectedFoodMenuItem,
-					formattedTime, food.Name, food.SideDish, strconv.Itoa(food.PriceTooman))
-			} else {
-				menuMsgText += fmt.Sprintf(text.MsgNotSelectedFoodMenuItem,
-					formattedTime, food.Name, food.SideDish, strconv.Itoa(food.PriceTooman))
-			}
-		}
-	}
+	// Send menu
+	menuMsgText := generateMenuMessage(foods)
 	msg := telegramAPI.NewMessage(userSession.GetChatID(), menuMsgText)
 	Bot.Send(msg)
 }
