@@ -9,12 +9,12 @@ LD_FLAGS := -X $(ROOT).Version=$(VERSION) -X $(ROOT).Commit=$(COMMIT) -X $(ROOT)
 
 .PHONY: help clean update-dependencies dependencies
 
-sarioselfd: *.go */*.go */*/*.go glide.lock
+sarioselfd: *.go */*.go */*/*.go Gopkg.lock
 	$(GO_VARS) $(GO) build -o="sarioselfd" -ldflags="$(LD_FLAGS)" $(ROOT)/cmd/sarioself
 
 help:
 	@echo "Please use \`make <ROOT>' where <ROOT> is one of"
-	@echo "  update-dependencies    to update glide.lock (refs to dependencies)"
+	@echo "  update-dependencies    to update Gopkg.lock (refs to dependencies)"
 	@echo "  dependencies           to install the dependencies"
 	@echo "  sarioselfd             to build the binary"
 	@echo "  clean                  to remove generated files"
@@ -23,7 +23,7 @@ clean:
 	rm -rf sarioselfd
 
 update-dependencies:
-	glide up
+	dep ensure -update
 
 dependencies:
-	glide install
+	dep ensure
