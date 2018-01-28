@@ -15,7 +15,7 @@ import (
 	"github.com/aryahadii/sarioself/model"
 	"github.com/otiai10/gosseract/v1/gosseract"
 	"github.com/pkg/errors"
-	log "github.com/sirupsen/logrus"
+	"github.com/sirupsen/logrus"
 	"golang.org/x/net/publicsuffix"
 )
 
@@ -42,7 +42,7 @@ func init() {
 	var err error
 	ocrClient, err = gosseract.NewClient()
 	if err != nil {
-		log.WithError(err).Fatalln("can't init gosseract client")
+		logrus.WithError(err).Fatalln("can't init gosseract client")
 	}
 }
 
@@ -159,71 +159,62 @@ func (s *SamadAUTClient) login(captcha string) error {
 
 // GetAvailableFoods returns a list of all foods that can be reserved
 // It checks this week and the next one
-func (s *SamadAUTClient) GetAvailableFoods() (map[time.Time]*model.Food, error) {
-	availableFoods := make(map[time.Time]*model.Food)
+func (s *SamadAUTClient) GetAvailableFoods() (map[time.Time][]*model.Food, error) {
+	availableFoods := make(map[time.Time][]*model.Food)
 
 	// Get page 1
-	response, err := s.httpClient.Get(samadReservationURL)
+	bodyString, err := s.getSamadReservePage()
 	if err != nil {
-		return availableFoods, err
+		return nil, errors.Wrap(err, "can't get first page of Samad")
 	}
-	if response.StatusCode < 200 || response.StatusCode >= 300 {
-		return nil, fmt.Errorf("Samad returned %v status code when tried to serve reservation page ",
-			response.StatusCode)
-	}
-	body, _ := ioutil.ReadAll(response.Body)
-	bodyString := string(body)
-	s.sessionData.csrf = csrfRegex.FindStringSubmatch(bodyString)[1]
-	io.Copy(ioutil.Discard, response.Body)
-	response.Body.Close()
 	foods, err := findSamadFoods(bodyString)
 	if err != nil {
 		return nil, errors.Wrap(err, "can't find Samad foods")
 	}
 	for _, food := range foods {
 		if food.Status != model.FoodStatusUnavailable {
-			availableFoods[*food.Date] = food
+			if _, ok := availableFoods[*food.Date]; ok {
+				availableFoods[*food.Date] = []*model.Food{food}
+			} else {
+				availableFoods[*food.Date] = append(availableFoods[*food.Date], food)
+			}
 		}
 	}
 
 	// Get page 2
-	formValues, err := extractFormInputValues(bodyString)
+	nextBodyString, err := s.getNextSamadReservePage(bodyString)
 	if err != nil {
-		return nil, errors.Wrap(err, "can't extract form input values")
+		return nil, errors.Wrap(err, "can't get second page of Samad")
 	}
-	formValues.Set("method:showNextWeek", "Submit")
-	request, err := http.NewRequest("POST", samadReservationActionURL, strings.NewReader(formValues.Encode()))
-	request.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-	request.Header.Set("X-Csrf-Token", s.sessionData.csrf)
-	response, err = s.httpClient.Do(request)
-	defer func() {
-		io.Copy(ioutil.Discard, response.Body)
-		response.Body.Close()
-	}()
-	if err != nil {
-		return nil, errors.Wrap(err, "can't read second page of Samad")
-	}
-	if response.StatusCode < 200 || response.StatusCode >= 300 {
-		return nil, fmt.Errorf("Samad returned %v status code when tried to serve second reservation page ",
-			response.StatusCode)
-	}
-	body, _ = ioutil.ReadAll(response.Body)
-	bodyString = string(body)
-	s.sessionData.csrf = csrfRegex.FindStringSubmatch(bodyString)[1]
-
-	foods, err = findSamadFoods(bodyString)
+	foods, err = findSamadFoods(nextBodyString)
 	if err != nil {
 		return nil, errors.Wrap(err, "can't find Samad foods from second page")
 	}
 	for _, food := range foods {
 		if food.Status != model.FoodStatusUnavailable {
-			availableFoods[*food.Date] = food
+			if _, ok := availableFoods[*food.Date]; ok {
+				availableFoods[*food.Date] = []*model.Food{food}
+			} else {
+				availableFoods[*food.Date] = append(availableFoods[*food.Date], food)
+			}
 		}
 	}
 
 	return availableFoods, nil
 }
 
-func (s *SamadAUTClient) ReserveFood(food *model.Food) error {
+func (s *SamadAUTClient) ReserveFood(date *time.Time, foodID string) error {
+	// Page 1
+	bodyString, err := s.getSamadReservePage()
+	if err != nil {
+		return errors.Wrap(err, "can't get first page of Samad")
+	}
+
+	err = s.toggleFoodReservation(bodyString, date, foodID)
+	if err != nil {
+		return errors.Wrap(err, "can't toggle food reservation")
+	}
+
+	// TODO: Get page 2
 	return nil
 }

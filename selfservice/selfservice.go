@@ -2,6 +2,7 @@ package selfservice
 
 import (
 	"net/http/cookiejar"
+	"time"
 
 	"github.com/aryahadii/sarioself/model"
 )
@@ -15,6 +16,6 @@ type userSessionData struct {
 
 // Client is interface for clients of restaurants
 type Client interface {
-	GetAvailableFoods() [][]*model.Food
-	ReserveFood(food *model.Food) error
+	GetAvailableFoods() (map[time.Time][]*model.Food, error)
+	ReserveFood(date *time.Time, foodID string) error
 }

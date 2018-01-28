@@ -30,8 +30,9 @@ const (
 type Food struct {
 	Name        string
 	SideDish    string
-	PriceTooman string
+	PriceTooman int
 	MealTime    MealTime
 	Status      FoodStatus
 	Date        *time.Time
+	ID          string
 }

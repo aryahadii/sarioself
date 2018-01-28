@@ -2,6 +2,7 @@ package telegram
 
 import (
 	"fmt"
+	"strconv"
 
 	"github.com/aryahadii/miyanbor"
 	"github.com/aryahadii/sarioself/db"
@@ -39,17 +40,19 @@ func menuCommandHandler(userSession *miyanbor.UserSession, matches interface{}) 
 	}
 
 	menuMsgText := ""
-	for time, food := range foods {
-		formattedTime := getFormattedTime(time)
-		if food.Status == model.FoodStatusUnavailable {
-			menuMsgText += fmt.Sprintf(text.MsgNotSelectableFoodMenuItem,
-				formattedTime, food.Name, food.SideDish, food.PriceTooman)
-		} else if food.Status == model.FoodStatusReserved {
-			menuMsgText += fmt.Sprintf(text.MsgSelectedFoodMenuItem,
-				formattedTime, food.Name, food.SideDish, food.PriceTooman)
-		} else {
-			menuMsgText += fmt.Sprintf(text.MsgNotSelectedFoodMenuItem,
-				formattedTime, food.Name, food.SideDish, food.PriceTooman)
+	for time, foodsOfDay := range foods {
+		for _, food := range foodsOfDay {
+			formattedTime := getFormattedTime(time)
+			if food.Status == model.FoodStatusUnavailable {
+				menuMsgText += fmt.Sprintf(text.MsgNotSelectableFoodMenuItem,
+					formattedTime, food.Name, food.SideDish, strconv.Itoa(food.PriceTooman))
+			} else if food.Status == model.FoodStatusReserved {
+				menuMsgText += fmt.Sprintf(text.MsgSelectedFoodMenuItem,
+					formattedTime, food.Name, food.SideDish, strconv.Itoa(food.PriceTooman))
+			} else {
+				menuMsgText += fmt.Sprintf(text.MsgNotSelectedFoodMenuItem,
+					formattedTime, food.Name, food.SideDish, strconv.Itoa(food.PriceTooman))
+			}
 		}
 	}
 	msg := telegramAPI.NewMessage(userSession.GetChatID(), menuMsgText)
