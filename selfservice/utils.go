@@ -65,10 +65,12 @@ func (s *SamadAUTClient) getNextSamadReservePage(bodyString string) (string, err
 	return nextBodyString, nil
 }
 
-func (s *SamadAUTClient) toggleFoodReservation(samadPage string, date *time.Time, foodID string) error {
+func (s *SamadAUTClient) toggleFoodReservation(samadPage string, date *time.Time, foodID string) (bool, error) {
+	var toggled bool
+
 	document, err := goquery.NewDocumentFromReader(strings.NewReader(samadPage))
 	if err != nil {
-		return errors.Wrap(err, "can't init goquery on document")
+		return toggled, errors.Wrap(err, "can't init goquery on document")
 	}
 
 	document.Find(":input[type=checkbox]").Each(func(i int, s *goquery.Selection) {
@@ -82,6 +84,7 @@ func (s *SamadAUTClient) toggleFoodReservation(samadPage string, date *time.Time
 					currentCredit, _ := s.Attr("value")
 					intCredit, _ := strconv.Atoi(currentCredit)
 					s.SetAttr("value", strconv.Itoa(intCredit+food.PriceTooman))
+					toggled = true
 				})
 
 				s.Parent().Siblings().Children().First().SetAttr("value", "0")
@@ -94,6 +97,7 @@ func (s *SamadAUTClient) toggleFoodReservation(samadPage string, date *time.Time
 						currentCredit, _ := s.Attr("value")
 						intCredit, _ := strconv.Atoi(currentCredit)
 						s.SetAttr("value", strconv.Itoa(intCredit-food.PriceTooman))
+						toggled = true
 					})
 
 					s.Parent().Siblings().Children().First().SetAttr("value", "1")
@@ -104,22 +108,52 @@ func (s *SamadAUTClient) toggleFoodReservation(samadPage string, date *time.Time
 		}
 	})
 
-	htmlString, _ := document.Html()
-	formValues, err := extractFormInputValues(htmlString)
-	if err != nil {
-		return errors.Wrap(err, "can't extract form input values")
-	}
-	formValues.Set("method:doReserve", "Submit")
-	request, err := http.NewRequest("POST", samadReservationActionURL, strings.NewReader(formValues.Encode()))
-	request.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-	request.Header.Set("X-Csrf-Token", s.sessionData.csrf)
-	response, err := s.httpClient.Do(request)
-	defer func() {
-		io.Copy(ioutil.Discard, response.Body)
-		response.Body.Close()
-	}()
+	if toggled {
+		htmlString, _ := document.Html()
+		formValues, err := extractFormInputValues(htmlString)
+		if err != nil {
+			return toggled, errors.Wrap(err, "can't extract form input values")
+		}
+		formValues.Set("method:doReserve", "Submit")
+		request, err := http.NewRequest("POST", samadReservationActionURL, strings.NewReader(formValues.Encode()))
+		request.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+		request.Header.Set("X-Csrf-Token", s.sessionData.csrf)
+		response, err := s.httpClient.Do(request)
+		defer func() {
+			io.Copy(ioutil.Discard, response.Body)
+			response.Body.Close()
+		}()
 
-	return nil
+		if err = getErrorOnPage(response.Body); err != nil {
+			if samadError, ok := err.(SamadError); ok {
+				return toggled, samadError
+			}
+			return toggled, errors.Wrap(err, "can't check for error after reservation")
+		}
+	}
+	return toggled, nil
+}
+
+func getErrorOnPage(page io.Reader) error {
+	document, err := goquery.NewDocumentFromReader(page)
+	if err != nil {
+		return errors.Wrap(err, "can't init goquery on document")
+	}
+
+	var samadError SamadError
+	document.Find("#errorMessages").Each(func(i int, s *goquery.Selection) {
+		samadError = SamadError{
+			What: s.Text(),
+			When: time.Now(),
+		}
+	})
+	return samadError
+}
+
+func getMealTimeLunch(year, month, day int) *time.Time {
+	jalaliDate := ptime.Date(year, ptime.Month(month), day, 10, 0, 0, 0, ptime.Iran())
+	gregorianDate := jalaliDate.Time()
+	return &gregorianDate
 }
 
 func makeFoodObject(s *goquery.Selection) *model.Food {
@@ -131,9 +165,7 @@ func makeFoodObject(s *goquery.Selection) *model.Food {
 	year, _ := strconv.Atoi(foodDate[:4])
 	month, _ := strconv.Atoi(foodDate[5:7])
 	day, _ := strconv.Atoi(foodDate[8:10])
-	jalaliDate := ptime.Date(year, ptime.Month(month), day, 10, 0, 0, 0, ptime.Iran())
-	gregorianDate := jalaliDate.Time()
-	food.Date = &gregorianDate
+	food.Date = getMealTimeLunch(year, month, day)
 
 	// Extract descriptions
 	foodDesc := strings.Split(strings.TrimSpace(s.SiblingsFiltered("span").Text()), " | ")

@@ -17,7 +17,7 @@
   branch = "master"
   name = "github.com/aryahadii/miyanbor"
   packages = ["."]
-  revision = "cc8ae51c054ee3f5c8fea7b25b3f70292166dba3"
+  revision = "edfcd3bc8a38ceb5780ddc0a5f4c73d5759c7d8f"
 
 [[projects]]
   name = "github.com/fsnotify/fsnotify"
@@ -131,19 +131,19 @@
   branch = "master"
   name = "golang.org/x/crypto"
   packages = ["ssh/terminal"]
-  revision = "0efb9460aaf800c6376acf625be2853bceac2e06"
+  revision = "1875d0a70c90e57f11972aefd42276df65e895b9"
 
 [[projects]]
   branch = "master"
   name = "golang.org/x/net"
   packages = ["html","html/atom","idna","publicsuffix"]
-  revision = "0ed95abb35c445290478a5348a7b38bb154135fd"
+  revision = "309822c5b9b9f80db67f016069a12628d94fad34"
 
 [[projects]]
   branch = "master"
   name = "golang.org/x/sys"
   packages = ["unix","windows"]
-  revision = "ff2a66f350cefa5c93a634eadb5d25bb60c85a9c"
+  revision = "8f27ce8a604014414f8dfffc25cbcde83a3f2216"
 
 [[projects]]
   branch = "master"

@@ -9,9 +9,11 @@ import (
 	"net/http/cookiejar"
 	"net/url"
 	"regexp"
+	"strconv"
 	"strings"
 	"time"
 
+	"github.com/PuerkitoBio/goquery"
 	"github.com/aryahadii/sarioself/model"
 	"github.com/otiai10/gosseract/v1/gosseract"
 	"github.com/pkg/errors"
@@ -203,18 +205,53 @@ func (s *SamadAUTClient) GetAvailableFoods() (map[time.Time][]*model.Food, error
 	return availableFoods, nil
 }
 
-func (s *SamadAUTClient) ReserveFood(date *time.Time, foodID string) error {
+func (s *SamadAUTClient) ToggleFoodReservation(date *time.Time, foodID string) (bool, error) {
 	// Page 1
 	bodyString, err := s.getSamadReservePage()
 	if err != nil {
-		return errors.Wrap(err, "can't get first page of Samad")
+		return false, errors.Wrap(err, "can't get first page of Samad")
 	}
-
-	err = s.toggleFoodReservation(bodyString, date, foodID)
+	toggled, err := s.toggleFoodReservation(bodyString, date, foodID)
 	if err != nil {
-		return errors.Wrap(err, "can't toggle food reservation")
+		if samadError, ok := err.(SamadError); ok {
+			return false, samadError
+		}
+		return false, errors.Wrap(err, "can't toggle food reservation")
 	}
 
-	// TODO: Get page 2
-	return nil
+	if !toggled {
+		// Page 2
+		bodyString, err = s.getNextSamadReservePage(bodyString)
+		if err != nil {
+			return false, errors.Wrap(err, "can't get second page of Samad")
+		}
+		toggled, err = s.toggleFoodReservation(bodyString, date, foodID)
+		if err != nil {
+			if samadError, ok := err.(SamadError); ok {
+				return false, samadError
+			}
+			return false, errors.Wrap(err, "can't toggle food reservation")
+		}
+	}
+
+	return toggled, nil
+}
+
+func (s *SamadAUTClient) GetCredit() (int, error) {
+	var credit int
+
+	bodyString, err := s.getSamadReservePage()
+	if err != nil {
+		return credit, errors.Wrap(err, "can't get first page of Samad")
+	}
+
+	document, err := goquery.NewDocumentFromReader(strings.NewReader(bodyString))
+	if err != nil {
+		return credit, errors.Wrap(err, "can't init goquery on document")
+	}
+
+	document.Find("#creditId").Each(func(i int, s *goquery.Selection) {
+		credit, _ = strconv.Atoi(s.Text())
+	})
+	return credit, nil
 }

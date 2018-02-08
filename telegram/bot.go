@@ -10,6 +10,10 @@ var (
 	Bot *miyanbor.Bot
 )
 
+const (
+	foodReservePattern = `RES#(?P<weekday>[\w.]+)#(?P<foodid>\d+)`
+)
+
 // StartBot makes telegram bot ready and starts it's updater
 func StartBot() {
 	logrus.Infof("Telegram bot is going to start")
@@ -33,6 +37,8 @@ func setCallbacks(bot *miyanbor.Bot) {
 	bot.SetSessionStartCallbackHandler(sessionStartHandler)
 	bot.SetFallbackCallbackHandler(unknownMessageHandler)
 
-	bot.AddCommandHandler("reserve", reserveCommandHandler)
+	bot.AddCommandHandler("credit", creditCommandHandler)
 	bot.AddCommandHandler("menu", menuCommandHandler)
+
+	bot.AddCallbackHandler(foodReservePattern, foodReserveMessageHandler)
 }
