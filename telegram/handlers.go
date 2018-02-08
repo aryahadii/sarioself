@@ -15,7 +15,6 @@ import (
 )
 
 func sessionStartHandler(userSession *miyanbor.UserSession, input interface{}) {
-	getUserInfo(userSession)
 }
 
 func menuCommandHandler(userSession *miyanbor.UserSession, matches interface{}) {
