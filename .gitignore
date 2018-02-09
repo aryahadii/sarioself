@@ -17,12 +17,6 @@
 # Output of the go coverage tool, specifically when used with LiteIDE
 *.out
 
-# Project-local glide cache, RE: https://github.com/Masterminds/glide/issues/736
-.glide/
-
-# Golang project vendor packages which should be ignored
-vendor/
-
 ### Linux ###
 *~
 
@@ -88,7 +82,8 @@ tags
 
 # End of https://www.gitignore.io/api/go,git,vim,linux,macos,visualstudiocode
 
-vendor/*
 secure/*
 !secure/PLACEHOLDER
 test/config.yaml
+/config.yaml
+/sarioselfd

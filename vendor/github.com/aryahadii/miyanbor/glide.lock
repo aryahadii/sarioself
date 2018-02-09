@@ -1,0 +1,22 @@
+hash: 8e1fe895330f70cfb9fbf43bf171e41387e4dc91e8ca95be357d05b32be4a536
+updated: 2018-01-19T16:25:54.018799+03:30
+imports:
+- name: github.com/patrickmn/go-cache
+  version: a3647f8e31d79543b2d0f0ae2fe5c379d72cedc0
+- name: github.com/pkg/errors
+  version: 645ef00459ed84a119197bfb8d8205042c6df63d
+- name: github.com/sirupsen/logrus
+  version: d682213848ed68c0a260ca37d6dd5ace8423f5ba
+- name: github.com/technoweenie/multipartstreamer
+  version: a90a01d73ae432e2611d178c18367fbaa13e0154
+- name: golang.org/x/crypto
+  version: 1f22c0103821b9390939b6776727195525381532
+  subpackages:
+  - ssh/terminal
+- name: golang.org/x/sys
+  version: d75a52659825e75fff6158388dddc6a5b04f9ba5
+  subpackages:
+  - unix
+- name: gopkg.in/telegram-bot-api.v4
+  version: 2022d04b94f50056a09962b1ac81cdd821d20a55
+testImports: []
