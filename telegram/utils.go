@@ -36,6 +36,11 @@ var (
 		5: "پنج‌شنبه",
 		6: "جمعه",
 	}
+	mealTime = map[int]string{
+		0: "صبحانه",
+		1: "ناهار",
+		2: "شام",
+	}
 )
 
 func getFormattedDayWeekday(time time.Time) string {
@@ -67,15 +72,23 @@ func generateMenuMessage(foods []*model.Food) string {
 	menuMsgText := ""
 	for _, food := range foods {
 		formattedTime := getFormattedDayWeekday(*food.Date)
+
+		sideDish := food.SideDish
+		if len(sideDish) == 0 {
+			sideDish = text.MsgNoSideDish
+		}
+
+		mealTimeString := mealTime[int(food.MealTime)]
+
 		if food.Status == model.FoodStatusUnavailable {
 			menuMsgText += fmt.Sprintf(text.MsgNotSelectableFoodMenuItem,
-				formattedTime, food.Name, food.SideDish, strconv.Itoa(food.PriceTooman))
+				mealTimeString, formattedTime, food.Name, sideDish, strconv.Itoa(food.PriceTooman))
 		} else if food.Status == model.FoodStatusReserved {
 			menuMsgText += fmt.Sprintf(text.MsgSelectedFoodMenuItem,
-				formattedTime, food.Name, food.SideDish, strconv.Itoa(food.PriceTooman))
+				mealTimeString, formattedTime, food.Name, sideDish, strconv.Itoa(food.PriceTooman))
 		} else {
 			menuMsgText += fmt.Sprintf(text.MsgNotSelectedFoodMenuItem,
-				formattedTime, food.Name, food.SideDish, strconv.Itoa(food.PriceTooman))
+				mealTimeString, formattedTime, food.Name, sideDish, strconv.Itoa(food.PriceTooman))
 		}
 	}
 	return menuMsgText

@@ -7,7 +7,8 @@ const (
 	MsgProfileSuccess           = "ردیف شد!"
 	MsgReservationToggleSuccess = "حله"
 
-	MsgNotSelectedFoodMenuItem   = "🔴 %s: %s(%s) - %sریال\n"
-	MsgSelectedFoodMenuItem      = "🔵 %s: %s(%s) - %sریال\n"
-	MsgNotSelectableFoodMenuItem = "⚪️ %s: %s(%s) - %sریال\n"
+	MsgNotSelectedFoodMenuItem   = "🔴 %s %s:\n %s(%s) - %sریال\n\n"
+	MsgSelectedFoodMenuItem      = "🔵 %s %s:\n %s(%s) - %sریال\n\n"
+	MsgNotSelectableFoodMenuItem = "⚪️ %s %s:\n %s(%s) - %sریال\n\n"
+	MsgNoSideDish                = "بدون مخلفات"
 )

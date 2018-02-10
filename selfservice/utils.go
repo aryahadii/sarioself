@@ -140,11 +140,13 @@ func getErrorOnPage(page io.Reader) error {
 		return errors.Wrap(err, "can't init goquery on document")
 	}
 
-	var samadError SamadError
+	var samadError error
 	document.Find("#errorMessages").Each(func(i int, s *goquery.Selection) {
-		samadError = SamadError{
-			What: s.Text(),
-			When: time.Now(),
+		if len(s.Text()) > 0 {
+			samadError = SamadError{
+				What: s.Text(),
+				When: time.Now(),
+			}
 		}
 	})
 	return samadError
@@ -156,8 +158,22 @@ func getMealTimeLunch(year, month, day int) *time.Time {
 	return &gregorianDate
 }
 
+func getMealDate(year, month, day int, mealTime model.MealTime) *time.Time {
+	var jalaliDate ptime.Time
+	if mealTime == model.MealTimeLunch {
+		jalaliDate = ptime.Date(year, ptime.Month(month), day, 11, 30, 0, 0, ptime.Iran())
+	} else {
+		jalaliDate = ptime.Date(year, ptime.Month(month), day, 19, 0, 0, 0, ptime.Iran())
+	}
+	gregorianDate := jalaliDate.Time()
+	return &gregorianDate
+}
+
 func makeFoodObject(s *goquery.Selection) *model.Food {
 	food := &model.Food{}
+
+	// Extract meal time
+	food.MealTime = model.MealTime(s.ParentsFiltered("table[align=\"center\"]").Parent().Index())
 
 	// Extract date
 	foodDate := s.ParentsFiltered("table[align=\"center\"]").Parent().
@@ -165,20 +181,19 @@ func makeFoodObject(s *goquery.Selection) *model.Food {
 	year, _ := strconv.Atoi(foodDate[:4])
 	month, _ := strconv.Atoi(foodDate[5:7])
 	day, _ := strconv.Atoi(foodDate[8:10])
-	food.Date = getMealTimeLunch(year, month, day)
+	food.Date = getMealDate(year, month, day, food.MealTime)
 
 	// Extract descriptions
 	foodDesc := strings.Split(strings.TrimSpace(s.SiblingsFiltered("span").Text()), " | ")
 	food.Name = foodDesc[1]
-	food.SideDish = foodDesc[2]
+	if len(foodDesc) > 2 {
+		food.SideDish = foodDesc[2]
+	}
 
 	// Extract price
 	stringPrice := strings.Split(strings.TrimSpace(s.SiblingsFiltered("div").Text()), " ")[0]
 	intPrice, _ := strconv.Atoi(stringPrice)
 	food.PriceTooman = intPrice
-
-	// Extract meal time
-	food.MealTime = model.MealTime(s.ParentsFiltered("table[align=\"center\"]").Parent().Index() - 1)
 
 	// Extract status
 	if _, ok := s.Attr("disabled"); ok {
