@@ -37,8 +37,12 @@ func setCallbacks(bot *miyanbor.Bot) {
 	bot.SetSessionStartCallbackHandler(sessionStartHandler)
 	bot.SetFallbackCallbackHandler(unknownMessageHandler)
 
+	bot.AddCommandHandler("start", startCommandHandler)
 	bot.AddCommandHandler("credit", creditCommandHandler)
 	bot.AddCommandHandler("menu", menuCommandHandler)
+
+	bot.AddMessageHandler("اعتبار", creditCommandHandler)
+	bot.AddMessageHandler("منو", menuCommandHandler)
 
 	bot.AddCallbackHandler(foodReservePattern, foodReserveMessageHandler)
 }

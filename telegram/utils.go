@@ -53,6 +53,16 @@ func getFormattedWeekday(time time.Time) string {
 	return fmt.Sprintf("%s", weekdays[int(jalaliDate.Weekday())])
 }
 
+func generateMainKeyboard() *telegramAPI.ReplyKeyboardMarkup {
+	rows := [][]telegramAPI.KeyboardButton{}
+	btnMenu := telegramAPI.NewKeyboardButton(text.MsgMainKeyboardMenu)
+	btnCredit := telegramAPI.NewKeyboardButton(text.MsgMainKeyboardCredit)
+	rows = append(rows, telegramAPI.NewKeyboardButtonRow(btnMenu, btnCredit))
+
+	markup := telegramAPI.NewReplyKeyboard(rows...)
+	return &markup
+}
+
 func generateMenuKeyboard(foods []*model.Food) *telegramAPI.InlineKeyboardMarkup {
 	rows := [][]telegramAPI.InlineKeyboardButton{}
 	for _, food := range foods {

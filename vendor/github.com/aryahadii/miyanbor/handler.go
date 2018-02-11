@@ -7,7 +7,8 @@ import (
 )
 
 var (
-	callbacks                    []callback
+	callbackQueryCallbacks       []callback
+	messagesCallbacks            []callback
 	commandsCallbacks            []callback
 	sessionStartCallbackFunction CallbackFunction
 	fallbackCallbackFunction     CallbackFunction
@@ -33,7 +34,7 @@ func (b *Bot) handleNewUpdate(update *telegramAPI.Update) {
 
 	// Find and call callback function
 	if update.CallbackQuery != nil {
-		for _, callback := range callbacks {
+		for _, callback := range callbackQueryCallbacks {
 			if matches := callback.Pattern.FindStringSubmatch(update.CallbackQuery.Data); matches != nil {
 				callback.Function(userSession, matches)
 				return
@@ -51,7 +52,7 @@ func (b *Bot) handleNewUpdate(update *telegramAPI.Update) {
 			if userSession.messageCallback != nil {
 				userSession.messageCallback(userSession, update.Message.Text)
 			} else {
-				for _, callback := range callbacks {
+				for _, callback := range messagesCallbacks {
 					if matches := callback.Pattern.FindStringSubmatch(update.Message.Text); matches != nil {
 						callback.Function(userSession, matches)
 						break

@@ -17,6 +17,12 @@ import (
 func sessionStartHandler(userSession *miyanbor.UserSession, input interface{}) {
 }
 
+func startCommandHandler(userSession *miyanbor.UserSession, matches interface{}) {
+	welcomeMessage := telegramAPI.NewMessage(userSession.GetChatID(), text.MsgWelcome)
+	welcomeMessage.ReplyMarkup = generateMainKeyboard()
+	Bot.Send(welcomeMessage)
+}
+
 func menuCommandHandler(userSession *miyanbor.UserSession, matches interface{}) {
 	userInfo, err := getUserInfo(userSession)
 	if err != nil {
