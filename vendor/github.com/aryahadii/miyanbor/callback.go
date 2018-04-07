@@ -5,7 +5,7 @@ import (
 )
 
 // CallbackFunction will be called to push new update
-type CallbackFunction func(*UserSession, interface{})
+type CallbackFunction func(*UserSession, []string, interface{})
 
 // callback contains a CallbackFunction and it's related Regex pattern
 type callback struct {

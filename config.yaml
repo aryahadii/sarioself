@@ -4,3 +4,7 @@ debug: true
 test-user:
   username: "username"
   password: "password"
+
+db:
+  dialect: sqlite3
+  path: sarioself.db

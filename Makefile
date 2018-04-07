@@ -1,5 +1,5 @@
 ROOT := github.com/aryahadii/sarioself
-GO_VARS ?= CGO_ENABLED=1 GOOS=linux GOARCH=amd64
+GO_VARS ?= CGO_ENABLED=1 GOOS=darwin GOARCH=amd64
 GO ?= go
 GIT ?= git
 COMMIT := $(shell $(GIT) rev-parse HEAD)

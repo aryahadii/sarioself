@@ -2,7 +2,6 @@ package main
 
 import (
 	"github.com/aryahadii/sarioself/configuration"
-	"github.com/aryahadii/sarioself/db"
 	"github.com/aryahadii/sarioself/telegram"
 	"github.com/spf13/cobra"
 )
@@ -20,9 +19,6 @@ func init() {
 }
 
 func start(cmd *cobra.Command, args []string) {
-	db.InitMongoDB()
-	defer db.Close()
-
 	if configuration.SarioselfConfig.GetBool("bots.telegram.enabled") {
 		telegram.StartBot()
 	}

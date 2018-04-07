@@ -17,9 +17,9 @@ type Bot struct {
 }
 
 // NewBot creates new instance of Bot struct, also creates BotAPI using token.
-func NewBot(token string, debug bool, sessionTimeout int) (*Bot, error) {
-	if debug {
-		logrus.SetLevel(logrus.InfoLevel)
+func NewBot(token string, verboseLogging bool, sessionTimeout int) (*Bot, error) {
+	if verboseLogging {
+		logrus.SetLevel(logrus.DebugLevel)
 	} else {
 		logrus.SetLevel(logrus.ErrorLevel)
 	}

@@ -11,16 +11,15 @@ import (
 	"github.com/aryahadii/sarioself/model"
 	"github.com/aryahadii/sarioself/ui/text"
 	"github.com/yaa110/go-persian-calendar/ptime"
-	"gopkg.in/mgo.v2/bson"
 	telegramAPI "gopkg.in/telegram-bot-api.v4"
 )
 
 func getUserInfo(userSession *miyanbor.UserSession) (*model.User, error) {
 	var userInfo model.User
-	err := db.UsersCollection.Find(bson.M{"user-id": userSession.GetUserID()}).One(&userInfo)
+	err := db.GetInstance().Where("user_id = ?", userSession.UserID).Find(&userInfo).Error
 	if err != nil {
-		Bot.AskStringQuestion(text.MsgEnterStudentID, userSession.GetUserID(),
-			userSession.GetChatID(), enterStudentIDCallback)
+		Bot.AskStringQuestion(text.MsgEnterStudentID, userSession.UserID,
+			userSession.ChatID, enterStudentIDCallback)
 		return nil, err
 	}
 	return &userInfo, nil
